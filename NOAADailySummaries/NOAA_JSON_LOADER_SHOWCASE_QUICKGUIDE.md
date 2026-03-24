@@ -22,9 +22,11 @@
 ## Use in Jupyter Lab
 
 Open:
+
 - `noaa_json_loader_lab.ipynb`
 
 Run cells in order:
+
 1. Load data with `load_noaa_json_dataframes()`
 2. View combined DataFrame head
 3. Inspect row/column counts per source file
@@ -40,6 +42,7 @@ uvicorn noaa_json_showcase_api:app --reload --port 8020
 ```
 
 Open:
+
 - `http://127.0.0.1:8020/` (dashboard)
 - `http://127.0.0.1:8020/api/summary`
 - `http://127.0.0.1:8020/api/files`
