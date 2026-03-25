@@ -11,12 +11,40 @@ Design notes:
 
 import json
 import os
+import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 
 BASE_URL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/data"
+
+
+def get_token_or_help() -> str:
+    """Return NOAA token or print clear setup instructions."""
+    token = os.getenv("NOAA_TOKEN")
+    if token:
+        return token
+
+    print("\nNOAA_TOKEN is not set.\n")
+
+    if sys.stdin.isatty():
+        typed = input("Paste your NOAA token (or press Enter to see setup steps): ").strip()
+        if typed:
+            return typed
+
+    print("How to fix:")
+    print("1) One-time run:")
+    print('   NOAA_TOKEN="your_token_here" python tokengrabber.py')
+    print("2) Or set for this terminal session:")
+    print('   export NOAA_TOKEN="your_token_here"')
+    print("   python tokengrabber.py")
+    print("3) Optional: persist in zsh:")
+    print('   echo \'export NOAA_TOKEN="your_token_here"\' >> ~/.zshrc')
+    print("   source ~/.zshrc\n")
+
+    raise ValueError("Missing NOAA_TOKEN")
 
 
 def fetch_daily_summaries(
@@ -63,11 +91,20 @@ def fetch_daily_summaries(
         }
         query_url = f"{BASE_URL}?{urlencode(params)}"
         request = Request(query_url, headers=headers, method="GET")
-        with urlopen(request, timeout=30) as response:
-            status_code = getattr(response, "status", None)
-            if status_code is not None and status_code >= 400:
-                raise RuntimeError(f"NOAA request failed with status {status_code}")
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(request, timeout=30) as response:
+                status_code = getattr(response, "status", None)
+                if status_code is not None and status_code >= 400:
+                    raise RuntimeError(f"NOAA request failed with status {status_code}")
+                payload = json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            print(f"NOAA API request failed (HTTP {exc.code}).")
+            if exc.code in (401, 403):
+                print("Your token may be missing, invalid, or not authorized.")
+            raise
+        except URLError:
+            print("Could not reach NOAA API. Check internet connection and try again.")
+            raise
         results = payload.get("results", []) if isinstance(payload, dict) else []
 
         # Save each page so source data remains inspectable and reproducible.
@@ -90,7 +127,7 @@ def fetch_daily_summaries(
 
 if __name__ == "__main__":
     # CLI mode: read token from environment and fetch into default folder.
-    token = os.getenv("NOAA_TOKEN")
+    token = get_token_or_help()
     files = fetch_daily_summaries(token=token)
     print(f"✅ Data saved: {len(files)} file(s)")
     for file_path in files:
