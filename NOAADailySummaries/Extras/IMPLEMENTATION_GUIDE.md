@@ -47,6 +47,8 @@ The system is intentionally split into clear layers:
 - Key functions:
   - `load_json_files_to_dataframe(...)`
   - `fetch_and_load_daily_summaries_dataframe(...)`
+- Import behavior:
+  - Resolves `fetch_daily_summaries` from multiple module paths (`tokengrabber` and `Extras.tokengrabber`) so it works in both script-style and package-style execution.
 
 ### `build_daily_summaries_df.py`
 - Responsibility: quick command-line smoke check for DataFrame creation.
@@ -219,6 +221,11 @@ Recommended practice:
 - "Missing NOAA token"
   - Set `NOAA_TOKEN` before fetch/refresh.
 
+- "Import 'tokengrabber' could not be resolved"
+  - Cause: project layout differs by execution context (root vs `Extras/`).
+  - Fix now in place: `json_helper.py` uses a multi-candidate module resolver for `fetch_daily_summaries`.
+  - If this appears in an IDE cache, reload the window or restart the Python language server.
+
 - API shows stale data
   - Use `POST /refresh-from-api` or `/reload-from-json`.
 
@@ -321,6 +328,12 @@ If you want the most direct lab-style path, use these simplified files:
 
 - `tokengrabber_basic.py`
   - Executes exactly the two README calls (offset 1 and 1001).
+  - Defaults to January 2018, and now supports `--year`, `--month`, and optional specific date ranges.
+  - Examples:
+    - `python tokengrabber_basic.py --year 2024`
+    - `python tokengrabber_basic.py --year 2024 --month 2`
+    - `python tokengrabber_basic.py --year 2024 --month october`
+    - `python tokengrabber_basic.py --start-date 2024-02-10 --end-date 2024-02-25`
   - Saves exactly these files:
     - `daily_summaries_FIPS10003_jan_2018_0.json`
     - `daily_summaries_FIPS10003_jan_2018_1.json`
@@ -348,10 +361,32 @@ Run:
 export NOAA_TOKEN="your_token_here"
 python tokengrabber_basic.py
 ```
+
+Optional (choose a different year):
+
+```bash
+python tokengrabber_basic.py --year 2024
+```
+
+Optional (choose a different year and month):
+
+```bash
+python tokengrabber_basic.py --year 2024 --month 2
+```
+
+Optional (use a specific date range):
+
+```bash
+python tokengrabber_basic.py --start-date 2024-02-10 --end-date 2024-02-25
+```
+
 Pass when both files exist:
 
 - `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_0.json`
 - `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_1.json`
+
+If `--year` and/or `--month` are used, output filenames reflect both (for example `..._feb_2024_0.json` and `..._feb_2024_1.json`).
+If `--start-date` and `--end-date` are used, filenames reflect the full range (for example `..._20240210_to_20240225_0.json`).
 
 ### Exercise 3 checkpoint
 Run:

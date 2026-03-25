@@ -23,11 +23,31 @@ export NOAA_TOKEN="your_token_here"
 python tokengrabber_basic.py
 ```
 
+Optional year selection:
+
+```bash
+python tokengrabber_basic.py --year 2024
+```
+
+Optional year + month selection:
+
+```bash
+python tokengrabber_basic.py --year 2024 --month 2
+```
+
+Optional specific date range:
+
+```bash
+python tokengrabber_basic.py --start-date 2024-02-10 --end-date 2024-02-25
+```
+
 Expected:
 
-- Output shows two saved files:
+- Output shows two saved files (default year is 2018):
   - `daily_summaries_FIPS10003_jan_2018_0.json`
   - `daily_summaries_FIPS10003_jan_2018_1.json`
+- If `--year`/`--month` are used, filenames use both (for example `..._feb_2024_0.json` and `..._feb_2024_1.json`).
+- If `--start-date`/`--end-date` are used, filenames use the date range label (for example `..._20240210_to_20240225_0.json`).
 
 ---
 

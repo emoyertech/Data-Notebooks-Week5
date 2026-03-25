@@ -8,9 +8,33 @@ parsing logic.
 import json
 import pandas as pd
 import os
+import importlib
 from pathlib import Path
 
-from tokengrabber import fetch_daily_summaries
+
+def _resolve_fetch_daily_summaries():
+    module_candidates = []
+    if __package__:
+        module_candidates.extend(
+            [
+                f"{__package__}.tokengrabber",
+                f"{__package__}.Extras.tokengrabber",
+            ]
+        )
+
+    module_candidates.extend(["tokengrabber", "Extras.tokengrabber"])
+
+    for module_name in module_candidates:
+        try:
+            module = importlib.import_module(module_name)
+            return module.fetch_daily_summaries
+        except ModuleNotFoundError:
+            continue
+
+    raise ImportError(f"Could not import fetch_daily_summaries from any candidate: {module_candidates}")
+
+
+fetch_daily_summaries = _resolve_fetch_daily_summaries()
 
 
 def load_json_files_to_dataframe(directory_path=None):
