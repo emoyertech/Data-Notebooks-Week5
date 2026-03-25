@@ -6,21 +6,16 @@ Use this as a loose flow, not a word-for-word script:
 
 - Start with intent:
   - "This script pulls NOAA daily summaries and saves local JSON snapshots we can trust and reuse."
-
 - Show one run command:
   - `NOAA_TOKEN="your_token_here" python tokengrabber.py`
-
 - Call out what changed:
   - Missing token now gives fix instructions instead of a confusing crash.
   - HTTP/network failures now explain likely cause.
-
 - Point to outputs:
   - Files land in `data/daily_summaries/`.
   - Naming pattern includes location/date/page.
-
 - Connect to downstream value:
   - "These JSON snapshots feed DataFrame loading, notebook analysis, and API views."
-
 - End with one practical takeaway:
   - "If this script works, the rest of the data workflow becomes much easier to debug and demo."
 
@@ -32,11 +27,13 @@ Use this version when speaking to engineers who want implementation detail.
 
 - Script entrypoint: `main()` in `tokengrabber.py`.
 - Token resolution path:
-  1) `NOAA_TOKEN` from environment,
-  2) interactive prompt in TTY,
-  3) explicit setup instructions then `ValueError`.
+
+  1. `NOAA_TOKEN` from environment.
+  2. Interactive prompt in TTY.
+  3. Explicit setup instructions, then `ValueError`.
 
 Engineering intent:
+
 - deterministic behavior in CI/non-interactive runs,
 - user-friendly behavior in local interactive runs.
 
@@ -47,6 +44,7 @@ Engineering intent:
 - Stop condition: `len(results) < limit` or empty results.
 
 Engineering intent:
+
 - avoid third-party HTTP dependency,
 - avoid silent truncation of multi-page datasets,
 - keep paging logic transparent.
@@ -57,6 +55,7 @@ Engineering intent:
 - Naming format includes location/date/page index.
 
 Engineering intent:
+
 - preserve immutable-ish source snapshots,
 - allow reprocessing without re-hitting external API,
 - support incident/debug replay from captured payloads.
@@ -71,6 +70,7 @@ Engineering intent:
   - re-raises to preserve fail-fast semantics.
 
 Engineering intent:
+
 - human-readable diagnosis + machine-visible failure signal.
 
 ### 5) System integration contracts
@@ -82,6 +82,7 @@ Engineering intent:
   - notebooks and APIs consume DataFrame output.
 
 Pipeline contract:
+
 - API response -> JSON snapshots -> DataFrame -> analysis/API.
 
 ### 6) Verification checklist (engineering)
@@ -103,6 +104,7 @@ python readme_requirements_check.py
 ```
 
 Expected outcomes:
+
 - missing-token path prints remediation commands,
 - happy path writes JSON files,
 - downstream DataFrame build succeeds,
@@ -126,6 +128,7 @@ Expected outcomes:
 - Output pattern: `daily_summaries_<location>_<start>_<end>_<page>.json`
 
 Key business value:
+
 - We create reproducible, inspectable source snapshots before analysis/API layers.
 
 ---
@@ -135,10 +138,8 @@ Key business value:
 - Uses Python stdlib HTTP (`urllib`) instead of `requests`.
   - Less environment friction.
   - Fewer external dependencies to break.
-
 - Uses pagination (`offset`, `limit`) in a loop.
   - Handles datasets larger than one page automatically.
-
 - Saves every response page.
   - Easier debugging and data lineage.
   - Downstream loaders can rerun without calling NOAA again.
@@ -148,15 +149,19 @@ Key business value:
 ## 3) Token handling improvement (what changed)
 
 Previous behavior:
+
 - Missing token raised an error with minimal guidance.
 
 Current behavior:
+
 - If `NOAA_TOKEN` is missing, the script now:
-  1) tells user exactly what is wrong,
-  2) prints copy/paste fix commands,
-  3) supports interactive token paste in TTY sessions.
+
+  1. Tells user exactly what is wrong.
+  2. Prints copy/paste fix commands.
+  3. Supports interactive token paste in TTY sessions.
 
 Why this matters:
+
 - Reduces onboarding friction.
 - Makes failures self-healing for users.
 
@@ -170,6 +175,7 @@ Why this matters:
   - prompts user to check connectivity/API reachability.
 
 Why this matters:
+
 - Faster diagnosis.
 - Fewer support pings for common setup mistakes.
 
@@ -178,17 +184,20 @@ Why this matters:
 ## 5) How to run (demo commands)
 
 One-time token run:
+
 ```bash
 NOAA_TOKEN="your_token_here" python tokengrabber.py
 ```
 
 Session-based token run:
+
 ```bash
 export NOAA_TOKEN="your_token_here"
 python tokengrabber.py
 ```
 
 Persist token in zsh:
+
 ```bash
 echo 'export NOAA_TOKEN="your_token_here"' >> ~/.zshrc
 source ~/.zshrc
@@ -213,6 +222,7 @@ source ~/.zshrc
 - Notebook and APIs consume DataFrames for analysis and browsing.
 
 System pipeline:
+
 - NOAA API -> JSON files -> DataFrame -> notebook plots / web API views
 
 ---
