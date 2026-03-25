@@ -36,6 +36,7 @@ The system is intentionally split into clear layers:
 ## 2) File-by-File Purpose
 
 ### `tokengrabber.py`
+
 - Responsibility: NOAA download + local JSON persistence.
 - Key behavior:
   - Reads token from argument/env (`NOAA_TOKEN`).
@@ -43,6 +44,7 @@ The system is intentionally split into clear layers:
   - Saves each response page as a JSON file.
 
 ### `json_helper.py`
+
 - Responsibility: DataFrame assembly and shared data flow.
 - Key functions:
   - `load_json_files_to_dataframe(...)`
@@ -51,13 +53,16 @@ The system is intentionally split into clear layers:
   - Resolves `fetch_daily_summaries` from multiple module paths (`tokengrabber` and `Extras.tokengrabber`) so it works in both script-style and package-style execution.
 
 ### `build_daily_summaries_df.py`
+
 - Responsibility: quick command-line smoke check for DataFrame creation.
 
 ### `dataframe_api.py`
+
 - Responsibility: serve DataFrame rows over HTTP and allow mutation.
 - Also serves browser UI (`GET /ui`) for no-code interaction.
 
 ### `IMPLEMENTATION_GUIDE.md`
+
 - Responsibility: architectural and operational reference.
 
 ---
@@ -97,6 +102,7 @@ Base URL: `http://127.0.0.1:8010`
 ## 4) How to Run Everything
 
 ### A) Fetch raw NOAA JSON pages
+
 ```bash
 cd /Users/ethan/Projects/Data-Notebooks-Week5/NOAADailySummaries
 export NOAA_TOKEN="your_token_here"
@@ -104,14 +110,17 @@ python tokengrabber.py
 ```
 
 ### B) Build DataFrame in terminal
+
 ```bash
 python build_daily_summaries_df.py
 ```
 
 ### C) Use notebook analysis
+
 Open `loading_and_graphing_daily_summaries.ipynb`, run top-to-bottom.
 
 ### D) Start API + UI
+
 ```bash
 uvicorn dataframe_api:app --reload --port 8010
 ```
@@ -128,34 +137,41 @@ Open:
 Use this blueprint in any domain (finance logs, IoT data, CRM records, etc.).
 
 ### Step 1: Define a raw data source
+
 - API endpoint(s)
 - auth method (token/key/oauth)
 - pagination strategy
 - expected record schema
 
 ### Step 2: Build a fetch module
+
 - Keep fetch logic isolated (`fetch_module.py`).
 - Save raw payloads to disk for reproducibility.
 - Include retry/error handling and timeout.
 
 ### Step 3: Build a normalizer/helper module
+
 - Convert raw payload pages into a unified table/DataFrame.
 - Centralize parsing in one place so notebook/API share logic.
 
 ### Step 4: Add a script runner
+
 - Build one command that fetches + loads + prints sanity output.
 - This catches issues before UI/API complexity.
 
 ### Step 5: Add CRUD API over working dataset
+
 - Use a store class with methods: list/get/update/delete.
 - Validate input columns and row ids.
 - Persist changes to an editable storage format (CSV/SQLite).
 
 ### Step 6: Add a minimal UI
+
 - Start with server-rendered or embedded HTML + fetch calls.
 - Reuse API endpoints (no duplicate business logic in UI).
 
 ### Step 7: Add docs and examples
+
 - Document architecture and endpoint contracts.
 - Include common commands and troubleshooting notes.
 
@@ -164,18 +180,23 @@ Use this blueprint in any domain (finance logs, IoT data, CRM records, etc.).
 ## 6) Why This Architecture Works
 
 1. Separation of concerns
+
 - Fetch, parse, analysis, and CRUD are decoupled.
 
-2. Reuse and consistency
+1. Reuse and consistency
+
 - Notebook, scripts, and API all use shared helper functions.
 
-3. Easy debugging
+1. Easy debugging
+
 - Raw JSON is stored locally, so you can inspect source responses.
 
-4. Safe iteration
+1. Safe iteration
+
 - Mutable working CSV keeps edits separate from original JSON snapshots.
 
-5. Low setup burden
+1. Low setup burden
+
 - Browser UI enables basic operations without extra frontend tooling.
 
 ---
@@ -258,15 +279,15 @@ Suggested reading order:
 
 - Start here to understand API fetch, pagination, and raw JSON storage.
 
-2. `json_helper.py`
+1. `json_helper.py`
 
 - Next, see how raw JSON pages are normalized into one DataFrame.
 
-3. `build_daily_summaries_df.py`
+1. `build_daily_summaries_df.py`
 
 - Then review the one-command script that runs the shared helper flow.
 
-4. `dataframe_api.py`
+1. `dataframe_api.py`
 
 - Finally, inspect store + endpoints + embedded UI behavior.
 
@@ -355,6 +376,7 @@ These files are kept separate so advanced API/UI work does not interfere with th
 Use these checkpoints as a submission confidence checklist.
 
 ### Exercise 2 checkpoint
+
 Run:
 
 ```bash
@@ -389,16 +411,19 @@ If `--year` and/or `--month` are used, output filenames reflect both (for exampl
 If `--start-date` and `--end-date` are used, filenames reflect the full range (for example `..._20240210_to_20240225_0.json`).
 
 ### Exercise 3 checkpoint
+
 Run:
 
 ```bash
 python readme_requirements_check.py
 ```
+
 Pass when output contains:
 
 - `README_REQUIREMENTS_CHECK_PASS`
 
 ### Exercise 4 checkpoint
+
 In notebook:
 
 - import helper module
@@ -466,17 +491,17 @@ Think of it as:
 - Run `tokengrabber_basic.py`
 - Run notebook with `json_helper_basic.py`
 
-2. Swap helper import in notebook
+1. Swap helper import in notebook
 
 - Move from `json_helper_basic` to `json_helper`
 - Confirm same DataFrame shape and columns
 
-3. Use advanced fetcher when needed
+1. Use advanced fetcher when needed
 
 - Replace fixed calls with parameterized `tokengrabber.py`
 - Keep outputs in same data folder
 
-4. Add API only when you need mutable workflows
+1. Add API only when you need mutable workflows
 
 - Start `dataframe_api.py`
 - Use `/rows` and `/ui` for row operations
@@ -520,15 +545,18 @@ This section traces the exact data path through the system.
 ```bash
 python tokengrabber_basic.py
 ```
-2. Script sends two NOAA requests (`offset=1`, `offset=1001`).
-3. Responses are saved to:
 
-  - `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_0.json`
-  - `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_1.json`
-4. Notebook imports `json_helper_basic.py`.
-5. `json_helper_basic.load_json_files_to_dataframe()` reads both JSON files.
-6. It extracts `payload["results"]` rows and concatenates to one DataFrame.
-7. Notebook analysis cells filter `datatype` into `TMAX` and `TMIN` and plot.
+1. Script sends two NOAA requests (`offset=1`, `offset=1001`).
+2. Responses are saved to:
+
+- `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_0.json`
+
+- `data/daily_summaries/daily_summaries_FIPS10003_jan_2018_1.json`
+
+1. Notebook imports `json_helper_basic.py`.
+2. `json_helper_basic.load_json_files_to_dataframe()` reads both JSON files.
+3. It extracts `payload["results"]` rows and concatenates to one DataFrame.
+4. Notebook analysis cells filter `datatype` into `TMAX` and `TMIN` and plot.
 
 ### Flow B: Advanced reusable path
 
@@ -537,22 +565,26 @@ python tokengrabber_basic.py
 ```bash
 uvicorn dataframe_api:app --reload --port 8010
 ```
-2. `DataFrameStore` initializes in `dataframe_api.py`:
 
-  - If `daily_summaries_working.csv` exists -> loads CSV.
-  - Else -> loads JSON via `json_helper.load_json_files_to_dataframe()` and writes CSV.
-3. API serves:
+1. `DataFrameStore` initializes in `dataframe_api.py`:
 
-  - `/rows` for data listing
-  - `/rows/{row_id}` for row-level operations
-  - `/ui` as browser client that calls those endpoints
-4. If you click “Refresh From API” in `/ui`:
+- If `daily_summaries_working.csv` exists -> loads CSV.
 
-  - API calls `json_helper.fetch_and_load_daily_summaries_dataframe()`
-  - which calls `tokengrabber.fetch_daily_summaries()`
-  - which fetches and stores fresh JSON pages
-  - then helper reloads DataFrame from JSON
-  - store writes updated CSV
+- Else -> loads JSON via `json_helper.load_json_files_to_dataframe()` and writes CSV.
+
+1. API serves:
+
+- `/rows` for data listing
+- `/rows/{row_id}` for row-level operations
+- `/ui` as browser client that calls those endpoints
+
+1. If you click “Refresh From API” in `/ui`:
+
+- API calls `json_helper.fetch_and_load_daily_summaries_dataframe()`
+- which calls `tokengrabber.fetch_daily_summaries()`
+- which fetches and stores fresh JSON pages
+- then helper reloads DataFrame from JSON
+- store writes updated CSV
 
 ### Why this matters
 
@@ -566,33 +598,43 @@ uvicorn dataframe_api:app --reload --port 8010
 Use this to understand intent behind each notebook block.
 
 1. Import helper
+
 - Goal: give notebook access to shared data loader.
 
-2. Build `df_daily_summaries`
+1. Build `df_daily_summaries`
+
 - Goal: one canonical DataFrame for all analysis.
 
-3. Quick DataFrame summary
+1. Quick DataFrame summary
+
 - Goal: verify shape, columns, and sanity before filtering.
 
-4. Count stations for FIPS10003
+1. Count stations for FIPS10003
+
 - Goal: answer README prompt using DataFrame filtering.
 
-5. Build `temps_max`
+1. Build `temps_max`
+
 - Goal: isolate max-temperature rows (`datatype == "TMAX"`).
 
-6. Stats on `temps_max`
+1. Stats on `temps_max`
+
 - Goal: count, mean, min, max.
 
-7. Plot `temps_max`
+1. Plot `temps_max`
+
 - Goal: visualize daily max pattern for month.
 
-8. Build `temps_min`
+1. Build `temps_min`
+
 - Goal: isolate min-temperature rows (`datatype == "TMIN"`).
 
-9. Stats on `temps_min`
+1. Stats on `temps_min`
+
 - Goal: same summary metrics for min temps.
 
-10. Plot `temps_min` and combined plot
+1. Plot `temps_min` and combined plot
+
 - Goal: compare min and max lines together.
 
 ---
@@ -600,45 +642,55 @@ Use this to understand intent behind each notebook block.
 ## 18) API Endpoint Examples (Concrete Requests + Meaning)
 
 ### List rows
+
 ```bash
 curl "http://127.0.0.1:8010/rows?offset=0&limit=2"
 ```
+
 What this does:
 
 - Reads two rows from current working DataFrame state.
 
 ### Edit one value
+
 ```bash
 curl -X PATCH "http://127.0.0.1:8010/rows/0" \
   -H "Content-Type: application/json" \
   -d '{"updates":{"value":250}}'
 ```
+
 What this does:
 
 - Modifies row `0`, column `value`, then persists CSV.
 
 ### Delete one row
+
 ```bash
 curl -X DELETE "http://127.0.0.1:8010/rows/1"
 ```
+
 What this does:
 
 - Removes row `1`, reindexes row ids, persists CSV.
 
 ### Reset edits from JSON snapshots
+
 ```bash
 curl -X POST "http://127.0.0.1:8010/reload-from-json"
 ```
+
 What this does:
 
 - Replaces current working CSV state with JSON-based state.
 
 ### Pull fresh NOAA data + rebuild state
+
 ```bash
 curl -X POST "http://127.0.0.1:8010/refresh-from-api" \
   -H "Content-Type: application/json" \
   -d '{"token":"your_token_here"}'
 ```
+
 What this does:
 
 - Downloads latest pages, rebuilds DataFrame, overwrites working CSV.
@@ -665,26 +717,33 @@ Simple rule:
 ## 20) Troubleshooting Playbook (Step-by-Step)
 
 ### Problem: DataFrame won’t load in notebook
+
 1. Run:
 
 ```bash
 python readme_requirements_check.py
 ```
-2. If files missing, run:
+
+1. If files missing, run:
 
 ```bash
 export NOAA_TOKEN="your_token_here"
 python tokengrabber_basic.py
 ```
-3. Re-run notebook from top.
+
+1. Re-run notebook from top.
 
 ### Problem: API starts but rows are empty
+
 1. Check JSON files exist in `data/daily_summaries`.
+
 2. Call:
+
 ```bash
 curl -X POST "http://127.0.0.1:8010/reload-from-json"
 ```
-3. Retry `/rows`.
+
+1. Retry `/rows`.
 
 ### Problem: API edits look wrong
 
@@ -694,7 +753,7 @@ curl -X POST "http://127.0.0.1:8010/reload-from-json"
 curl -X POST "http://127.0.0.1:8010/reload-from-json"
 ```
 
-2. Re-apply edits carefully.
+1. Re-apply edits carefully.
 
 ### Problem: Token errors on refresh
 
@@ -769,19 +828,19 @@ This section is a practical debug manual when something does not run correctly.
 python readme_requirements_check.py
 ```
 
-2. Validate DataFrame build:
+1. Validate DataFrame build:
 
 ```bash
 python build_daily_summaries_df.py
 ```
 
-3. Validate API boot:
+1. Validate API boot:
 
 ```bash
 uvicorn dataframe_api:app --reload --port 8010
 ```
 
-4. Validate API routes:
+1. Validate API routes:
 
 ```bash
 curl "http://127.0.0.1:8010/"
