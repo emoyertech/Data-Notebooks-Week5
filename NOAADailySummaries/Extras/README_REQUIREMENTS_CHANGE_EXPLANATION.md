@@ -21,7 +21,7 @@ The README defines four exercises:
 
 ## How we satisfied each requirement
 
-## Exercise 1 (Context and dataset understanding)
+### Exercise 1 (Context and dataset understanding)
 
 What was needed:
 
@@ -38,7 +38,7 @@ Why this is correct:
 
 ---
 
-## Exercise 2 (Fetch NOAA data and save required files)
+### Exercise 2 (Fetch NOAA data and save required files)
 
 What was needed:
 
@@ -76,7 +76,7 @@ Why advanced version exists:
 
 ---
 
-## Exercise 3 (Create json_helper module)
+### Exercise 3 (Create json_helper module)
 
 What was needed:
 
@@ -109,7 +109,7 @@ Why advanced helper exists:
 
 ---
 
-## Exercise 4 (Notebook completion)
+### Exercise 4 (Notebook completion)
 
 What was needed:
 
@@ -182,7 +182,7 @@ Why this separation is important:
 
 ## Basic path vs Advanced path
 
-## Basic path (assignment-safe)
+### Basic path (assignment-safe)
 
 Use these files:
 
@@ -196,7 +196,7 @@ When to use:
 - Class requirement alignment
 - Simpler explanation and grading clarity
 
-## Advanced path (reusable system)
+### Advanced path (reusable system)
 
 Use these files:
 
@@ -228,15 +228,15 @@ This shows both requirement compliance and engineering maturity.
 
 ## Quick command sequence for README compliance
 
-1) Fetch required files:
+1. Fetch required files:
 
 - python tokengrabber_basic.py
 
-1) Verify compliance:
+2. Verify compliance:
 
 - python readme_requirements_check.py
 
-1) Run notebook top-to-bottom:
+3. Run notebook top-to-bottom:
 
 - loading_and_graphing_daily_summaries.ipynb
 

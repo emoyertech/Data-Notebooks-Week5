@@ -21,7 +21,6 @@ from urllib.request import Request, urlopen
 
 BASE_URL = "https://www.ncdc.noaa.gov/cdo-web/api/v2/data"
 
-
 def get_token_or_help() -> str:
     """Return NOAA token or provide simple recovery instructions.
 
